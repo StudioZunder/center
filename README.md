@@ -12,6 +12,9 @@ Eine einzige HTML-Datei. Keine Abhängigkeiten.
 - Graue Taste: Zurücksetzen
 - Signalton und Vibrationsalarm, wenn die Zeit um ist. Beide wiederholen sich bis Start oder Reset.
 - Bildschirm bleibt an, solange der Timer läuft
+- Darunter das Wetter für Oldenburg in Oldenburg: aktueller Stand mit allen Messwerten, Tagesverlauf und sieben Tage.
+  Quelle ist der Deutsche Wetterdienst über die offene Schnittstelle Bright Sky.
+- Timer und Wetter füllen je eine volle Bildschirmhöhe. Die Seite rastet beim Scrollen ein.
 
 ## Nutzung
 

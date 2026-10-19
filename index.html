@@ -14,7 +14,8 @@
 <title>Bruns Timer 60</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap">
 <style>
-/* Layout: ein einzelnes Gerät, zentriert, Zifferblatt oben, Tasten unten. Bewusst ein fester Bruns-Look in beiden Themes. */
+/* Layout: zwei Bildschirme untereinander, jeder 100 % hoch, die Seite rastet beim Scrollen ein.
+   Oben der Timer, unten das Wetter. Bewusst ein fester Bruns-Look in beiden Themes. */
 :root{
   --room:#d9d6cf;
   --body:#e9e7e2;
@@ -28,13 +29,16 @@
   --muted:#77746c;
   --sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
-html,body{height:100%}
-body{
-  margin:0;background:var(--room);color:var(--ink);font-family:var(--sans);
+html{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;background:var(--room)}
+html::-webkit-scrollbar{display:none}
+body{margin:0;background:var(--room);color:var(--ink);font-family:var(--sans)}
+.screen{
+  height:100vh;height:100dvh;box-sizing:border-box;overflow:hidden;
+  scroll-snap-align:start;scroll-snap-stop:always;
   display:flex;align-items:center;justify-content:center;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:24px;box-sizing:border-box;
+  padding-block:24px;
 }
 .device{
   width:min(360px,100%);background:var(--body);border-radius:36px;
@@ -46,6 +50,8 @@ body{
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .brand .logo{width:43px;max-width:none;color:var(--ink)}
 svg{width:100%;max-width:300px;height:auto;display:block}
+/* Das Zifferblatt schrumpft mit, damit der Timer immer in eine Bildschirmhöhe passt. */
+.device>svg{max-width:min(300px,max(160px,calc(100vh - 500px)));max-width:min(300px,max(160px,calc(100dvh - 500px)))}
 .sliderbox{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;
   font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .slider{width:100%;max-width:260px;cursor:pointer;touch-action:pan-y;user-select:none;-webkit-user-select:none;
@@ -74,25 +80,72 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
 .slide[aria-checked="true"]::after{left:25px;background:var(--orange)}
 .slide:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
 @keyframes pulse{to{filter:brightness(1.2)}}
+/* Wetter: gleiche Gerätekarte, schwarzes Rund mit gelbem Sinnbild, Tagesverlauf als schwarze Leiste. */
+.wetter{max-height:100%;overflow-y:auto;gap:16px;scrollbar-width:none}
+.wetter>*,.wetter .ico{flex-shrink:0}
+.wetter::-webkit-scrollbar{display:none}
+.wetter .ico{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;max-width:none}
+.now{align-self:stretch;display:flex;align-items:center;gap:20px}
+.now-dial{flex:none;width:88px;height:88px;border-radius:50%;background:var(--dial);color:var(--hand);
+  display:flex;align-items:center;justify-content:center}
+.now-dial .ico{width:52px;height:52px}
+.now-temp{font-size:44px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1}
+.now .state{margin-top:8px}
+.now .zeit{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.werte{align-self:stretch;display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px;margin:0}
+.werte div{min-width:0}
+.werte dt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.werte dd{margin:3px 0 0;font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.label{align-self:stretch;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:-8px}
+.stunden{align-self:stretch;list-style:none;margin:0;padding:12px 10px;display:flex;gap:4px;overflow-x:auto;
+  background:var(--dial);border-radius:18px;color:var(--tick);scrollbar-width:none;font-variant-numeric:tabular-nums}
+.stunden::-webkit-scrollbar{display:none}
+.stunden li{flex:none;width:42px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px}
+.stunden .ico{width:24px;height:24px;color:var(--hand)}
+.stunden b{font-size:15px;font-weight:500}
+.stunden i{font-style:normal;color:#a9a59c}
+.woche{align-self:stretch;list-style:none;margin:0;padding:0;font-variant-numeric:tabular-nums}
+.woche li{display:grid;grid-template-columns:76px 26px 1fr auto;align-items:center;column-gap:8px;
+  padding:5px 0;border-top:1px solid var(--body-edge)}
+.woche li:first-child{border-top:0}
+.woche .tag{font-size:13px;font-weight:600}
+.woche .tag small{font-size:inherit;font-weight:400;color:var(--muted);margin-left:5px}
+.woche li.heute .tag{color:var(--orange)}
+.woche .ico{width:24px;height:24px}
+.woche .lage{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.woche .temp{font-size:15px;font-weight:500}
+.woche .temp i{font-style:normal;color:var(--muted);margin-left:8px}
+.woche .extra{grid-column:1/-1;font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px}
+@media (max-height:760px){
+  .wetter{gap:14px}
+  .now-dial{width:80px;height:80px}.now-dial .ico{width:46px;height:46px}
+  .now-temp{font-size:38px}
+  .werte{gap:8px 10px}
+  .woche li{padding:3px 0}
+  .label{margin-bottom:-6px}
+}
 @media (prefers-reduced-motion:reduce){.device.ringing #start{animation:none}}
 /* Telefon: das Gerät füllt den ganzen Bildschirm, randlos, Inhalte gleichmäßig über die Höhe verteilt. */
 @media (max-width:500px){
   html,body{background:var(--body)}
-  body{padding:0;min-height:100vh;min-height:100dvh}
-  .device{width:100%;min-height:100vh;min-height:100dvh;border-radius:0;box-shadow:none;
+  .screen{padding:0}
+  .device{width:100%;height:100%;max-height:none;border-radius:0;box-shadow:none;
     justify-content:space-evenly;gap:16px;
     padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px))
       max(24px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
   .state{margin-top:-10px}
+  .wetter{justify-content:space-between;gap:12px}
   .device>svg{max-width:min(300px,calc(100vh - 400px));max-width:min(300px,calc(100dvh - 400px))}
 }
+@media (max-width:500px) and (max-height:760px){.wetter{gap:12px}}
 </style>
 </head>
 <body>
+<section class="screen" id="timer">
 <div class="device" id="dev">
   <div class="brand">
     <svg class="logo" viewBox="0 0 1751 304" role="img" aria-label="STUDIO ZUNDER" fill="currentColor">
-      <g transform="matrix(1,0,0,1,-831.304,-1147.73)">
+      <g id="zlogo" transform="matrix(1,0,0,1,-831.304,-1147.73)">
         <path transform="matrix(4.16667,0,0,4.16667,1508.39,1313.09)" d="M0,-39.685L27.213,0L27.213,-39.685L0,-39.685Z"/>
         <path transform="matrix(4.16667,0,0,4.16667,1510.75,1282.08)" d="M0,39.685L27.213,39.685L0,0L0,39.685Z"/>
         <path transform="matrix(4.16667,0,0,4.16667,1713.9,1147.73)" d="M0,71.582L32.861,71.582C36.8,71.582 41.194,70.931 46.045,69.629C49.593,68.685 52.913,66.789 56.006,63.94C59.098,61.092 61.515,57.561 63.257,53.345C64.998,49.129 65.869,43.197 65.869,35.547C65.869,30.664 65.283,26.042 64.111,21.68C62.939,17.318 61.051,13.493 58.447,10.205C55.843,6.918 52.547,4.394 48.56,2.637C44.572,0.879 39.339,0 32.861,0L0,0L0,71.582ZM27.637,16.211C33.366,16.211 37.467,17.611 39.941,20.41C42.415,23.21 43.652,28.402 43.652,35.986C43.652,41.716 43.098,45.858 41.992,48.413C40.885,50.969 39.355,52.759 37.402,53.784C35.449,54.81 32.161,55.322 27.539,55.322L22.119,55.322L22.119,16.211L27.637,16.211ZM71.441,71.582L131.793,71.582L131.793,55.371L93.609,55.371L93.609,41.26L128.033,41.26L128.033,26.66L93.609,26.66L93.609,15.283L130.719,15.283L130.719,0L71.441,0L71.441,71.582ZM160.217,71.582L160.217,42.529L162.17,42.529C164.188,42.529 165.995,43.083 167.59,44.189C168.762,45.036 170.096,46.875 171.594,49.707L183.417,71.582L208.41,71.582L197.698,50.84C197.178,49.798 196.145,48.315 194.6,46.393C193.054,44.47 191.876,43.216 191.062,42.629C189.859,41.75 187.939,40.871 185.305,39.99C188.594,39.242 191.184,38.298 193.073,37.158C196.036,35.368 198.365,33.032 200.059,30.151C201.753,27.27 202.6,23.845 202.6,19.873C202.6,15.316 201.493,11.45 199.279,8.276C197.065,5.103 194.152,2.93 190.539,1.758C186.926,0.586 181.701,0 174.865,0L138,0L138,71.582L160.217,71.582ZM160.217,14.453L169.934,14.453C173.97,14.453 176.721,15.072 178.186,16.309C179.65,17.546 180.383,19.32 180.383,21.631C180.383,23.193 179.919,24.577 178.991,25.781C178.063,26.986 176.867,27.734 175.402,28.027C172.505,28.679 170.552,29.004 169.543,29.004L160.217,29.004L160.217,14.453Z"/>
@@ -134,6 +187,29 @@ button:focus-visible{outline:3px solid var(--dial);outline-offset:3px}
     <div class="key"><button id="start" aria-label="Start oder Stopp"></button>Start / Stopp</div>
   </div>
 </div>
+</section>
+
+<section class="screen" id="wetter">
+<div class="device wetter" aria-label="Wetter in Oldenburg">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 1751 304" role="img" aria-label="STUDIO ZUNDER" fill="currentColor"><use href="#zlogo"/></svg>
+    <span>Oldenburg</span>
+  </div>
+  <div class="now">
+    <div class="now-dial"><svg class="ico" id="w-ico" viewBox="0 0 24 24" aria-hidden="true"></svg></div>
+    <div>
+      <div class="now-temp" id="w-temp">·</div>
+      <div class="state" id="w-lage">Lädt</div>
+      <div class="zeit" id="w-zeit"></div>
+    </div>
+  </div>
+  <dl class="werte" id="w-werte"></dl>
+  <div class="label" id="w-heute-label" hidden>Heute</div>
+  <ul class="stunden" id="w-heute" hidden></ul>
+  <div class="label" id="w-woche-label" hidden>7 Tage</div>
+  <ul class="woche" id="w-woche" hidden></ul>
+</div>
+</section>
 
 <script>
 // SCALE: Sekunden auf dem Zifferblatt. UNIT: Sekunden je Schritt des Schiebereglers.
@@ -312,6 +388,119 @@ document.addEventListener('pointerup',e=>{
   try{const r=f.call(d,{navigationUI:'hide'});if(r&&r.catch)r.catch(()=>{});}catch(err){}
 },{passive:true});
 renderWheel();ariaWheel();draw();
+</script>
+<script>
+/* Wetter für Oldenburg in Oldenburg. Quelle: Deutscher Wetterdienst über die offene Schnittstelle Bright Sky.
+   Aktueller Stand, Tagesverlauf und sieben Tage. Neu geholt alle 30 Minuten und beim Zurückkehren auf die Seite. */
+(function(){
+  const ORT='lat=53.1435&lon=8.2146', BASIS='https://api.brightsky.dev', HALBE=30*60*1000;
+  const LAGEN={'clear-day':'sonnig','clear-night':'klar','partly-cloudy-day':'heiter','partly-cloudy-night':'leicht bewölkt',
+    'cloudy':'bewölkt','fog':'neblig','wind':'windig','rain':'Regen','sleet':'Schneeregen','snow':'Schnee','hail':'Hagel','thunderstorm':'Gewitter'};
+  const WOLKE='<path d="M7.2 18h9.4a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.5-1.2A3.5 3.5 0 0 0 7.2 18z"/>';
+  const SONNE='<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/>';
+  const IKONEN={
+    'clear-day':SONNE,
+    'clear-night':'<path d="M20 14.5A8 8 0 0 1 9.5 4 8.2 8.2 0 1 0 20 14.5z"/>',
+    'partly-cloudy-day':'<circle cx="8.4" cy="8.4" r="2.8"/><path d="M8.4 2.9v1.5M3.9 8.4H2.4M5.2 5.2 4.1 4.1M11.6 5.2l1.1-1.1"/>'+WOLKE,
+    'partly-cloudy-night':'<path d="M15.4 8.6A4.6 4.6 0 0 1 9.6 2.9a4.7 4.7 0 1 0 5.8 5.7z"/>'+WOLKE,
+    'cloudy':WOLKE,
+    'fog':WOLKE+'<path d="M5 21h9M8 18.6h10"/>',
+    'wind':'<path d="M3 8h11a2.8 2.8 0 1 0-2.8-2.8M3 12h15a3 3 0 1 1-3 3M3 16h8.5a2.5 2.5 0 1 1-2.5 2.5"/>',
+    'rain':WOLKE+'<path d="M9 20.4 8.2 22.4M13 20.4 12.2 22.4M17 20.4l-.8 2"/>',
+    'sleet':WOLKE+'<path d="M9 20.6 8.3 22.4M16.8 20.6 16 22.4M12.8 20.6v2M11.9 21.6h1.8"/>',
+    'snow':WOLKE+'<path d="M8.8 20.6v2M7.9 21.6h1.8M12.8 20.6v2M11.9 21.6h1.8M16.8 20.6v2M15.9 21.6h1.8"/>',
+    'hail':WOLKE+'<circle cx="9" cy="21.4" r=".9"/><circle cx="13" cy="21.4" r=".9"/><circle cx="17" cy="21.4" r=".9"/>',
+    'thunderstorm':WOLKE+'<path d="M13.4 19.6 10.4 22.6h3.2l-1.4 2.4"/>'
+  };
+  const RICHTUNG=['N','NO','O','SO','S','SW','W','NW'], TAGE=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const $=id=>document.getElementById(id);
+  const lage=n=>LAGEN[n]||'wechselhaft', ikone=n=>IKONEN[n]||WOLKE;
+  const svg=n=>'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">'+ikone(n)+'</svg>';
+  const num=v=>typeof v==='number';
+  const zahl=(v,st)=>num(v)?(st?v.toFixed(st).replace('.',','):String(Math.round(v))):null;
+  const zwei=n=>String(n).padStart(2,'0');
+  const schluessel=d=>d.getFullYear()+'-'+zwei(d.getMonth()+1)+'-'+zwei(d.getDate());
+  const erster=(...w)=>w.find(num);
+  const max=a=>Math.max.apply(null,a), min=a=>Math.min.apply(null,a);
+  const reihe=(l,k)=>l.map(e=>e[k]).filter(num);
+  const summe=a=>a.reduce((x,y)=>x+y,0);
+
+  function abrufen(pfad){
+    return fetch(BASIS+pfad).then(r=>{if(r.ok)return r.json();throw new Error('Abruf')});
+  }
+  function tag(versatz){const d=new Date();d.setDate(d.getDate()+versatz);return schluessel(d);}
+
+  function jetzt(w){
+    $('w-ico').innerHTML=ikone(w.icon);
+    $('w-temp').textContent=zahl(w.temperature)+' °C';
+    $('w-lage').textContent=lage(w.icon);
+    $('w-zeit').textContent=new Date(w.timestamp).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr';
+    const wind=erster(w.wind_speed_10,w.wind_speed_30), boe=erster(w.wind_gust_speed_10,w.wind_gust_speed_30);
+    const werte=[
+      ['Wind',num(wind)?zahl(wind)+' km/h '+(num(w.wind_direction_10)?RICHTUNG[Math.round(w.wind_direction_10/45)%8]:''):null],
+      ['Böen',num(boe)?zahl(boe)+' km/h':null],
+      ['Feuchte',num(w.relative_humidity)?zahl(w.relative_humidity)+' %':null],
+      ['Wolken',num(w.cloud_cover)?zahl(w.cloud_cover)+' %':null],
+      ['Regen 1 h',num(w.precipitation_60)?zahl(w.precipitation_60,1)+' mm':null],
+      ['Sonne 1 h',num(w.sunshine_60)?zahl(w.sunshine_60)+' min':null],
+      ['Luftdruck',num(w.pressure_msl)?zahl(w.pressure_msl)+' hPa':null],
+      ['Sicht',num(w.visibility)?zahl(w.visibility/1000,1)+' km':null],
+      ['Taupunkt',num(w.dew_point)?zahl(w.dew_point)+' °C':null]
+    ];
+    $('w-werte').innerHTML=werte.filter(p=>p[1]).map(p=>'<div><dt>'+p[0]+'</dt><dd>'+p[1]+'</dd></div>').join('');
+  }
+
+  function heute(stunden){
+    const nun=new Date(), k=schluessel(nun);
+    let rest=stunden.filter(e=>{const d=new Date(e.timestamp);return schluessel(d)===k&&d.getHours()>=nun.getHours();});
+    /* Am späten Abend den Blick auf die kommenden Stunden richten */
+    if(rest.length<4)rest=stunden.filter(e=>new Date(e.timestamp)>=nun).slice(0,12);
+    if(!rest.length)return;
+    $('w-heute').innerHTML=rest.map(e=>'<li><span>'+zwei(new Date(e.timestamp).getHours())+'</span>'+svg(e.icon)+
+      '<b>'+(zahl(e.temperature)||'·')+'°</b><i>'+(num(e.precipitation_probability)?e.precipitation_probability+' %':'·')+'</i></li>').join('');
+    $('w-heute').hidden=$('w-heute-label').hidden=false;
+  }
+
+  function woche(stunden){
+    const tage={}, folge=[];
+    stunden.forEach(e=>{const d=new Date(e.timestamp), k=schluessel(d);
+      if(!tage[k]){tage[k]={datum:d,werte:[]};folge.push(k);} tage[k].werte.push(e);});
+    const heuteK=schluessel(new Date());
+    const zeilen=folge.map(k=>{
+      const t=tage[k], w=t.werte;
+      if(w.length<6)return '';   /* angebrochene Tage bleiben außen vor */
+      const temps=reihe(w,'temperature'); if(!temps.length)return '';
+      const regen=reihe(w,'precipitation_probability'), menge=summe(reihe(w,'precipitation'));
+      const wind=reihe(w,'wind_speed'), sonne=summe(reihe(w,'sunshine'));
+      /* Sinnbild aus den Tagesstunden, dort zeigt sich der Charakter des Tages */
+      const tags=w.filter(e=>{const h=new Date(e.timestamp).getHours();return h>=9&&h<=18;}), oft={};
+      (tags.length?tags:w).forEach(e=>{if(e.icon)oft[e.icon]=(oft[e.icon]||0)+1;});
+      const sym=Object.keys(oft).sort((a,b)=>oft[b]-oft[a])[0];
+      const ist=k===heuteK;
+      const extra=[regen.length?max(regen)+' % Regen':'',menge>0.05?zahl(menge,1)+' mm':'',
+        wind.length?zahl(max(wind))+' km/h Wind':'',sonne>0?Math.round(sonne/60)+' h Sonne':''].filter(Boolean).join(' · ');
+      return '<li'+(ist?' class="heute"':'')+'><span class="tag">'+(ist?'Heute':TAGE[t.datum.getDay()])+
+        '<small>'+zwei(t.datum.getDate())+'.'+zwei(t.datum.getMonth()+1)+'.</small></span>'+svg(sym)+
+        '<span class="lage">'+lage(sym)+'</span><span class="temp">'+zahl(max(temps))+'°<i>'+zahl(min(temps))+'°</i></span>'+
+        '<span class="extra">'+extra+'</span></li>';
+    }).filter(Boolean);
+    if(!zeilen.length)return;
+    $('w-woche').innerHTML=zeilen.join('');
+    $('w-woche').hidden=$('w-woche-label').hidden=false;
+  }
+
+  let geholt=0;
+  function holen(){
+    geholt=Date.now();
+    abrufen('/current_weather?'+ORT).then(j=>{if(!j||!j.weather||!num(j.weather.temperature))throw 0;jetzt(j.weather);})
+      .catch(()=>{if($('w-temp').textContent==='·')$('w-lage').textContent='Messwerte stehen aus';});
+    abrufen('/weather?'+ORT+'&date='+tag(0)+'&last_date='+tag(7)).then(j=>{
+      if(!j||!j.weather||!j.weather.length)throw 0;heute(j.weather);woche(j.weather);}).catch(()=>{});
+  }
+  holen();
+  setInterval(holen,HALBE);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-geholt>HALBE)holen();});
+})();
 </script>
 </body>
 </html>
